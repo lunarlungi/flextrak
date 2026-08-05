@@ -963,6 +963,8 @@ async function openExercise(id, back){
         </div>
       </div>`:''}
 
+      <button class="btn" id="doNow" style="margin-bottom:14px">▶ Start</button>
+
       <div class="card"><h2>How To Do It</h2><ol class="steps">${ex.steps.map(s=>`<li>${s}</li>`).join('')}</ol></div>
       <div class="card"><h2>Common Mistakes</h2><ul class="mlist">${ex.mistakes.map(m=>`<li>${m}</li>`).join('')}</ul></div>
       <div class="card"><h2>Alternatives & Substitutions</h2><div>${altHtml}</div></div>
@@ -974,6 +976,15 @@ async function openExercise(id, back){
         ${customImg?`<div class="img-actions"><button class="btn secondary" id="imgReplace">Replace</button><button class="btn ghost" id="imgRemove">Remove</button></div>`:''}
       </div>`;
     root.querySelector('#back').addEventListener('click', back || (()=>navigate('library')) );
+    root.querySelector('#doNow').addEventListener('click',async()=>{
+      const reps=(ex.track==='time'?'30s':ex.track==='distance'?'30m':'10');
+      if(SESSION){
+        SESSION.queue.push({id:ex.id,mode:(ex.track||setMode(reps)),skipped:false,target:{sets:3,reps},sets:[0,0,0].map(()=>({weight:'',reps:'',duration:'',distance:'',done:false}))});
+        await saveActive(); toast('Added to your workout'); renderSession();
+      } else {
+        startSession(ex.name,[{id:ex.id,sets:3,reps}]);
+      }
+    });
     const mapEl=root.querySelector('#map');
     if(mapEl) highlightMuscles(mapEl, ex.map, ex.mapSec);
     root.querySelectorAll('.alt-chip[data-alt]').forEach(c=>c.addEventListener('click',()=>openExercise(c.dataset.alt)));
